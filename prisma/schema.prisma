@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agenda {
+  id         Int       @id @default(autoincrement())
+  id_quadra  Int
+  data       DateTime  @db.Timestamp(6)
+  valor      Int
+  disponivel Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  quadra     Quadra    @relation(fields: [id_quadra], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reserva    Reserva[]
+
+  @@map("agenda")
+}
+
+model Quadra {
+  id             Int         @id @default(autoincrement())
+  id_tipo        Int
+  descricao      String?
+  nome           String
+  foto_principal String
+  created_at     DateTime?   @default(now()) @db.Timestamp(6)
+  agenda         Agenda[]
+  tipo_quadra    Tipo_quadra @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("quadras")
+}
+
+model Reserva {
+  id         Int       @id @default(autoincrement())
+  id_usuario Int
+  id_agenda  Int
+  pago       Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  agenda     Agenda    @relation(fields: [id_agenda], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuario    Usuario   @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("reservas")
+}
+
+model Tipo_quadra {
+  id         Int       @id @default(autoincrement())
+  tipo       String
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  quadra     Quadra[]
+
+  @@map("tipo_quadra")
+}
+
+model Usuario {
+  id         Int       @id @default(autoincrement())
+  nome       String
+  email      String    @unique
+  senha      String
+  telefone   Int       @unique
+  adm        Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  reserva    Reserva[]
+  sessoes    Sessao[]
+
+  @@map("usuarios")
+}
+
+model Sessao {
+  id         Int       @id @default(autoincrement())
+  id_usuario Int       @map("id_usuario")
+  usuario    Usuario   @relation(fields: [id_usuario], references: [id])
+  token      String    @unique
+  created_at DateTime? @default(now())
+
+  @@map("sessoes")
+}
